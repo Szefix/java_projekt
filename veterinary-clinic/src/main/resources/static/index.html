@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinary Clinic Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
+        .navbar { background-color: #2c3e50; color: white; padding: 15px 20px; text-align: center; }
+        .container { display: flex; max-width: 1200px; margin: 20px auto; gap: 20px; }
+        .sidebar { width: 200px; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar button { padding: 10px; border: none; background-color: #34495e; color: white; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .sidebar button:hover { background-color: #1abc9c; }
+        .content { flex: 1; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+        .form-group { margin-bottom: 10px; }
+        .form-group input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-submit { background-color: #27ae60; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        .btn-submit:hover { background-color: #2ecc71; }
+        .btn-delete { background-color: #e74c3c; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; float: right; }
+        .btn-delete:hover { background-color: #c0392b; }
+        .btn-refresh { background-color: #3498db; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px; }
+        .btn-refresh:hover { background-color: #2980b9; }
+        .card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px; background-color: #fafafa; }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>Vet Clinic Menu</h2>
+</div>
+
+<div class="container">
+    <div class="sidebar">
+        <button onclick="showSection('doctorsSection')">Doctors</button>
+        <button onclick="showSection('patientsSection')">Patients</button>
+        <button onclick="showSection('appointmentsSection')">Appointments</button>
+    </div>
+
+    <div class="content">
+
+        <div id="doctorsSection">
+            <h3>Add Doctor</h3>
+            <div class="form-group"><input type="text" id="docFirstName" placeholder="First Name"></div>
+            <div class="form-group"><input type="text" id="docLastName" placeholder="Last Name"></div>
+            <div class="form-group"><input type="text" id="docSpecialization" placeholder="Specialization"></div>
+            <button class="btn-submit" onclick="addDoctor()">Save Doctor</button>
+            <hr>
+            <h3>Doctors List</h3>
+            <button class="btn-refresh" onclick="loadDoctors()">Refresh Data</button>
+            <div id="doctorsList"></div>
+        </div>
+
+        <div id="patientsSection" class="hidden">
+            <h3>Add Patient</h3>
+            <div class="form-group"><input type="text" id="patName" placeholder="Animal Name"></div>
+            <div class="form-group"><input type="text" id="patSpecies" placeholder="Species"></div>
+            <div class="form-group"><input type="text" id="patOwner" placeholder="Owner Name"></div>
+            <button class="btn-submit" onclick="addPatient()">Save Patient</button>
+            <hr>
+            <h3>Patients List</h3>
+            <button class="btn-refresh" onclick="loadPatients()">Refresh Data</button>
+            <div id="patientsList"></div>
+        </div>
+
+        <div id="appointmentsSection" class="hidden">
+            <h3>Add Appointment</h3>
+            <div class="form-group"><input type="datetime-local" id="appDateTime"></div>
+            <div class="form-group"><input type="text" id="appDesc" placeholder="Description"></div>
+            <div class="form-group"><input type="number" id="appDocId" placeholder="Doctor ID"></div>
+            <div class="form-group"><input type="number" id="appPatId" placeholder="Patient ID"></div>
+            <button class="btn-submit" onclick="addAppointment()">Save Appointment</button>
+            <hr>
+            <h3>Appointments List</h3>
+            <button class="btn-refresh" onclick="loadAppointments()">Refresh Data</button>
+            <div id="appointmentsList"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const apiUrl = 'http://localhost:8080/api';
+
+    function showSection(sectionId) {
+        document.getElementById('doctorsSection').classList.add('hidden');
+        document.getElementById('patientsSection').classList.add('hidden');
+        document.getElementById('appointmentsSection').classList.add('hidden');
+        document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    function loadDoctors() {
+        fetch(apiUrl + '/doctors')
+        .then(res => res.json())
+        .then(data => {
+            const div = document.getElementById('doctorsList');
+            div.innerHTML = '';
+            data.forEach(d => {
+                div.innerHTML += `<div class="card">
+                <strong>ID: ${d.id} | ${d.firstName} ${d.lastName}</strong> - ${d.specialization}
+                <button class="btn-delete" onclick="deleteItem('/doctors/${d.id}', loadDoctors)">Delete</button>
+                </div>`;
+            });
+        });
+    }
+
+    function addDoctor() {
+        const data = {
+            firstName: document.getElementById('docFirstName').value,
+            lastName: document.getElementById('docLastName').value,
+            specialization: document.getElementById('docSpecialization').value
+        };
+        postData('/doctors', data, loadDoctors);
+    }
+
+    function loadPatients() {
+        fetch(apiUrl + '/patients')
+        .then(res => res.json())
+        .then(data => {
+            const div = document.getElementById('patientsList');
+            div.innerHTML = '';
+            data.forEach(p => {
+            div.innerHTML += `<div class="card">
+            <strong>ID: ${p.id} | ${p.name} (${p.species})</strong> - Owner: ${p.ownerName}
+            <button class="btn-delete" onclick="deleteItem('/patients/${p.id}', loadPatients)">Delete</button>
+            </div>`;
+            });
+        });
+    }
+
+    function addPatient() {
+        const data = {
+            name: document.getElementById('patName').value,
+            species: document.getElementById('patSpecies').value,
+            ownerName: document.getElementById('patOwner').value
+        };
+        postData('/patients', data, loadPatients);
+    }
+
+    function loadAppointments() {
+        fetch(apiUrl + '/appointments')
+        .then(res => res.json())
+        .then(data => {
+            const div = document.getElementById('appointmentsList');
+            div.innerHTML = '';
+            data.forEach(a => {
+                div.innerHTML += `<div class="card">
+                <strong>ID: ${a.id} | ${a.dateTime.replace('T', ' ')}</strong><br>
+                Doctor: ${a.doctorFullName} | Patient: ${a.patientName} (${a.ownerName})<br>
+                Desc: ${a.description}
+                <button class="btn-delete" onclick="deleteItem('/appointments/${a.id}', loadAppointments)">Delete</button>
+                </div>`;
+            });
+        });
+    }
+
+    function addAppointment() {
+        const data = {
+            dateTime: document.getElementById('appDateTime').value,
+            description: document.getElementById('appDesc').value,
+            doctorId: document.getElementById('appDocId').value,
+            patientId: document.getElementById('appPatId').value
+        };
+        postData('/appointments', data, loadAppointments);
+    }
+
+    function postData(endpoint, data, reloadCallback) {
+        fetch(apiUrl + endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => {
+            if(res.ok) {
+                alert('Success');
+                reloadCallback();
+            } else {
+                alert('Error occurred - Check your inputs or API rules');
+            }
+        });
+    }
+
+    function deleteItem(endpoint, reloadCallback) {
+        fetch(apiUrl + endpoint, { method: 'DELETE' })
+        .then(res => {
+            if(res.ok) {
+                reloadCallback();
+            } else {
+                alert('Error occurred');
+            }
+        });
+    }
+
+    loadDoctors();
+    loadPatients();
+    loadAppointments();
+</script>
+</body>
+</html>
