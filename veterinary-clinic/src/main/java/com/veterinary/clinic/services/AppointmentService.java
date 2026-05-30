@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 
 @Service
 @Transactional
@@ -21,6 +23,9 @@ public class AppointmentService {
 
     // Margines czasu (minuty) – dwie wizyty nie mogą być bliżej niż 30 minut
     public static final int APPOINTMENT_WINDOW_MINUTES = 30;
+    public static final LocalTime CLINIC_OPEN = LocalTime.of(8, 0);
+    public static final LocalTime CLINIC_CLOSE = LocalTime.of(18, 0);
+
 
     private final AppointmentRepository appointmentRepository;
     private final DoctorService doctorService;
@@ -78,6 +83,7 @@ public class AppointmentService {
         Patient patient = patientService.getPatientEntityById(requestDTO.getPatientId());
 
         // WALIDACJA BIZNESOWA: sprawdzenie konfliktów terminu
+        checkClinicHours(requestDTO.getDateTime());
         checkForConflicts(doctor.getId(), requestDTO.getDateTime(), null);
 
         Appointment appointment = new Appointment(
@@ -98,6 +104,7 @@ public class AppointmentService {
         Patient patient = patientService.getPatientEntityById(requestDTO.getPatientId());
 
         // WALIDACJA BIZNESOWA: sprawdzenie konfliktów z wykluczeniem bieżącej wizyty
+        checkClinicHours(requestDTO.getDateTime());
         checkForConflicts(doctor.getId(), requestDTO.getDateTime(), id);
 
         appointment.setDateTime(requestDTO.getDateTime());
@@ -169,5 +176,29 @@ public class AppointmentService {
     private Appointment findAppointmentOrThrow(Long id) {
         return appointmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Wizyta", id));
+    }
+
+    public void checkClinicHours(LocalDateTime dateTime) {
+        DayOfWeek day = dateTime.getDayOfWeek();
+        LocalTime time = dateTime.toLocalTime();
+
+        if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {
+            throw new AppointmentConflictException(
+                    String.format(
+                            "Klinika jest nieczynna w weekendy. " +
+                                    "Wybierz termin od poniedziałku do piątku (godziny %s–%s).",
+                            CLINIC_OPEN, CLINIC_CLOSE
+                    )
+            );
+        }
+
+        if (time.isBefore(CLINIC_OPEN) || !time.isBefore(CLINIC_CLOSE)) {
+            throw new AppointmentConflictException(
+                    String.format(
+                            "Wizyta o godzinie %s jest poza godzinami otwarcia kliniki (%s–%s).",
+                            time, CLINIC_OPEN, CLINIC_CLOSE
+                    )
+            );
+        }
     }
 }

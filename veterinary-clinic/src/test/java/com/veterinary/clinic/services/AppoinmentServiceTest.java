@@ -53,7 +53,7 @@ class AppointmentServiceTest {
         testPatient = new Patient("Burek", "Pies", "Jan Kowalski");
         testPatient.setId(1L);
 
-        baseDateTime = LocalDateTime.of(2025, 6, 15, 10, 0);
+        baseDateTime = LocalDateTime.of(2025, 6, 16, 10, 0);
     }
 
     // =========================================================
@@ -238,5 +238,69 @@ class AppointmentServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(appointmentRepository, never()).deleteById(any());
+    }
+
+    // =========================================================
+//  GODZINY OTWARCIA – testy checkClinicHours
+// =========================================================
+
+    @Test
+    @DisplayName("Powinien zaakceptować wizytę w godzinach otwarcia (pon, 10:00)")
+    void checkClinicHours_shouldPass_onWeekdayWithinHours() {
+        LocalDateTime valid = LocalDateTime.of(2025, 6, 16, 10, 0); // poniedziałek
+        assertThatCode(() -> appointmentService.checkClinicHours(valid))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("Powinien rzucić wyjątek dla wizyty w sobotę")
+    void checkClinicHours_shouldThrow_onSaturday() {
+        LocalDateTime saturday = LocalDateTime.of(2025, 6, 14, 10, 0);
+        assertThatThrownBy(() -> appointmentService.checkClinicHours(saturday))
+                .isInstanceOf(AppointmentConflictException.class)
+                .hasMessageContaining("weekend");
+    }
+
+    @Test
+    @DisplayName("Powinien rzucić wyjątek dla wizyty w niedzielę")
+    void checkClinicHours_shouldThrow_onSunday() {
+        LocalDateTime sunday = LocalDateTime.of(2025, 6, 15, 12, 0);
+        assertThatThrownBy(() -> appointmentService.checkClinicHours(sunday))
+                .isInstanceOf(AppointmentConflictException.class)
+                .hasMessageContaining("weekend");
+    }
+
+    @Test
+    @DisplayName("Powinien rzucić wyjątek dla wizyty przed otwarciem (7:59)")
+    void checkClinicHours_shouldThrow_beforeOpeningTime() {
+        LocalDateTime tooEarly = LocalDateTime.of(2025, 6, 16, 7, 59);
+        assertThatThrownBy(() -> appointmentService.checkClinicHours(tooEarly))
+                .isInstanceOf(AppointmentConflictException.class)
+                .hasMessageContaining("poza godzinami otwarcia");
+    }
+
+    @Test
+    @DisplayName("Powinien rzucić wyjątek dla wizyty o godzinie zamknięcia (18:00)")
+    void checkClinicHours_shouldThrow_atClosingTime() {
+        LocalDateTime atClose = LocalDateTime.of(2025, 6, 16, 18, 0);
+        assertThatThrownBy(() -> appointmentService.checkClinicHours(atClose))
+                .isInstanceOf(AppointmentConflictException.class)
+                .hasMessageContaining("poza godzinami otwarcia");
+    }
+
+    @Test
+    @DisplayName("Powinien zaakceptować wizytę o 8:00 (dokładnie przy otwarciu)")
+    void checkClinicHours_shouldPass_atOpeningTime() {
+        LocalDateTime atOpen = LocalDateTime.of(2025, 6, 16, 8, 0);
+        assertThatCode(() -> appointmentService.checkClinicHours(atOpen))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("Powinien zaakceptować wizytę o 17:59 (ostatnia minuta przed zamknięciem)")
+    void checkClinicHours_shouldPass_oneMinuteBeforeClose() {
+        LocalDateTime lastMinute = LocalDateTime.of(2025, 6, 16, 17, 59);
+        assertThatCode(() -> appointmentService.checkClinicHours(lastMinute))
+                .doesNotThrowAnyException();
     }
 }
