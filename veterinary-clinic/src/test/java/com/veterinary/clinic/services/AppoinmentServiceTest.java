@@ -241,8 +241,8 @@ class AppointmentServiceTest {
     }
 
     // =========================================================
-//  GODZINY OTWARCIA – testy checkClinicHours
-// =========================================================
+    //  GODZINY OTWARCIA – testy checkClinicHours
+    // =========================================================
 
     @Test
     @DisplayName("Powinien zaakceptować wizytę w godzinach otwarcia (pon, 10:00)")

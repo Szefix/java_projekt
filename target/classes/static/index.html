@@ -146,13 +146,13 @@
             const div = document.getElementById('patientsList');
             div.innerHTML = '';
             data.forEach(p => {
-                let contactInfo = '';
-                if (p.ownerPhone) contactInfo += `Tel: ${p.ownerPhone} `;
-                if (p.ownerEmail) contactInfo += `E-mail: ${p.ownerEmail}`;
+                // Bezpieczne przypisanie danych z blokadą wypisywania "null"
+                let phone = (p.ownerPhone && p.ownerPhone !== 'null') ? p.ownerPhone : 'Brak telefonu';
+                let email = (p.ownerEmail && p.ownerEmail !== 'null') ? p.ownerEmail : 'Brak e-maila';
 
                 div.innerHTML += `<div class="card">
-                <strong>ID: ${p.id} | ${p.name} (${p.species})</strong> - Owner: ${p.ownerName}<br>
-                ${contactInfo ? contactInfo : ''}
+                <strong>ID: ${p.id} | ${p.name} (${p.species})</strong><br>
+                Owner: ${p.ownerName} | Tel: ${phone} | E-mail: ${email}
                 <div class="card-actions">
                     <button class="btn-delete" onclick="deleteItem('/patients/${p.id}', loadPatients)">Delete</button>
                 </div>

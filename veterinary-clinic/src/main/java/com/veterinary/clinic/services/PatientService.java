@@ -45,6 +45,8 @@ public class PatientService {
     // ===== Dodanie nowego pacjenta =====
     public PatientDTO createPatient(PatientDTO dto) {
         Patient patient = new Patient(dto.getName(), dto.getSpecies(), dto.getOwnerName());
+        patient.setOwnerPhone(dto.getOwnerPhone());
+        patient.setOwnerEmail(dto.getOwnerEmail());
         Patient saved = patientRepository.save(patient);
         return mapToDTO(saved);
     }
@@ -55,6 +57,8 @@ public class PatientService {
         patient.setName(dto.getName());
         patient.setSpecies(dto.getSpecies());
         patient.setOwnerName(dto.getOwnerName());
+        patient.setOwnerPhone(dto.getOwnerPhone());
+        patient.setOwnerEmail(dto.getOwnerEmail());
         Patient updated = patientRepository.save(patient);
         return mapToDTO(updated);
     }

@@ -48,6 +48,25 @@ Dzięki klasie BaseEntity i adnotacji @EnableJpaAuditing, każdy nowy rekord i k
 
 ---
 
+## Struktura Katalogów
+```text
+veterinary-clinic/
+├── src/main/java/com/veterinary/clinic/
+│   ├── controllers/       # Odpowiadają za routing i endpointy REST (np. AppointmentController)
+│   ├── dto/               # Bezpieczne obiekty transferu danych (ukrywają encje)
+│   ├── exceptions/        # Globalna obsługa błędów (GlobalExceptionHandler)
+│   ├── models/            # Encje bazodanowe i Enumsy (Doctor, Patient, Appointment)
+│   ├── repositories/      # Interfejsy Spring Data JPA (komunikacja z bazą SQLite)
+│   ├── services/          # Główna logika biznesowa i walidacja
+│   ├── DataInitializer.java        # Skrypt generujący dane startowe
+│   └── VeterinaryClinicApplication.java
+└── src/main/resources/
+    ├── static/
+    │   └── index.html     # Interfejs graficzny użytkownika (Frontend SPA)
+    └── application.properties # Konfiguracja bazy danych i serwera
+```
+---
+
 ## Architektura Projektu
 
 Projekt opiera się na sprawdzonym wzorcu wielowarstwowym, zapewniając pełną separację odpowiedzialności:
@@ -89,25 +108,52 @@ Po uruchomieniu systemu masz do dyspozycji następujące narzędzia:
 ---
 
 ## Testy Automatyczne (plik AppointmentServiceTest)
-System posiada zestaw 14 kompleksowych, izolowanych testów jednostkowych napisanych przy użyciu frameworka Mockito i JUnit 5, które weryfikują poprawność działania kluczowych algorytmów rezerwacyjnych:
+System posiada zestaw 36 kompleksowych, izolowanych testów jednostkowych napisanych przy użyciu frameworka Mockito i JUnit 5, które weryfikują poprawność działania kluczowych algorytmów rezerwacyjnych:
 
-## Weryfikacja podstawowych metod działania i blokowania przy tworzeniu wizyt
-1. createAppointment_shouldSave_whenNoConflict – Potwierdza zapis wizyty, gdy termin lekarza jest całkowicie wolny.
-2. createAppointment_shouldThrow_whenExactSameTime – Weryfikuje zablokowanie zapisu, gdy lekarz ma już przypisaną wizytę na dokładnie tę samą godzinę.
-3. createAppointment_shouldThrow_whenConflictWithin30Minutes – Sprawdza odrzucenie zapisu, gdy nowa wizyta koliduje z inną wewnątrz 30-minutowego marginesu ochronnego (np. odstęp 15 minut).
-4. createAppointment_shouldSave_whenPreviousAppointmentIs31MinutesBefore – Potwierdza poprawność zapisu, gdy poprzednia wizyta kończy się bezpiecznie poza oknem (31 minut różnicy).
-5. updateAppointment_shouldExcludeSelfFromConflictCheck – Weryfikuje algorytm edycji, sprawdzając, czy modyfikowana wizyta nie generuje sztucznego konfliktu z samą sobą.
-6. getAppointmentById_shouldThrow_whenNotFound – Sprawdza rzucenie błędu 404 dla nieistniejącego identyfikatora wizyty.
-7. deleteAppointment_shouldThrow_whenNotFound – Testuje próbę usunięcia rekordu, którego nie ma w strukturach bazy danych.
+### AppointmentServiceTest (14 testów)
+Weryfikacja logiki rezerwacji wizyt:
+1. createAppointment_shouldSave_whenNoConflict – Zapis wizyty gdy termin jest wolny.
+2. createAppointment_shouldThrow_whenExactSameTime – Blokada gdy lekarz ma wizytę o tej samej godzinie.
+3. createAppointment_shouldThrow_whenConflictWithin30Minutes – Blokada gdy wizyta jest w oknie 30 minut.
+4. createAppointment_shouldSave_whenPreviousAppointmentIs31MinutesBefore – Zapis gdy poprzednia wizyta jest 31 minut wcześniej.
+5. updateAppointment_shouldExcludeSelfFromConflictCheck – Edycja nie generuje konfliktu z samą sobą.
+6. getAppointmentById_shouldThrow_whenNotFound – Błąd 404 dla nieistniejącego ID.
+7. deleteAppointment_shouldThrow_whenNotFound – Błąd przy usuwaniu nieistniejącej wizyty.
+8. checkClinicHours_shouldPass_onWeekdayWithinHours – Akceptacja wizyty w dzień roboczy w godzinach pracy.
+9. checkClinicHours_shouldThrow_onSaturday – Blokada wizyty w sobotę.
+10. checkClinicHours_shouldThrow_onSunday – Blokada wizyty w niedzielę.
+11. checkClinicHours_shouldThrow_beforeOpeningTime – Blokada wizyty przed godziną otwarcia (07:59).
+12. checkClinicHours_shouldThrow_atClosingTime – Blokada wizyty o godzinie zamknięcia (18:00).
+13. checkClinicHours_shouldPass_atOpeningTime – Akceptacja wizyty o 08:00.
+14. checkClinicHours_shouldPass_oneMinuteBeforeClose – Akceptacja wizyty o 17:59.
 
-## Testy sprawdzające reakcje na dni tygodnia oraz nieprawidłowe godziny
-8. checkClinicHours_shouldPass_onWeekdayWithinHours – Akceptuje wizytę odbywającą się w dzień roboczy w godzinach pracy.
-9. checkClinicHours_shouldThrow_onSaturday – Odrzuca próbę rejestracji wizyty w sobotę.
-10. checkClinicHours_shouldThrow_onSunday – Odrzuca próbę rejestracji wizyty w niedzielę.
-11. checkClinicHours_shouldThrow_beforeOpeningTime – Blokuje wizytę zaplanowaną przed godziną otwarcia (np. 07:59).
-12. checkClinicHours_shouldThrow_atClosingTime – Blokuje wizytę zaplanowaną dokładnie o godzinie zamknięcia (18:00).
-13. checkClinicHours_shouldPass_atOpeningTime – Akceptuje wizytę umówioną równo o godzinie otwarcia (08:00).
-14. checkClinicHours_shouldPass_oneMinuteBeforeClose – Akceptuje wizytę zaplanowaną na ostatnią minutę pracy (17:59).
+### DoctorServiceTest (10 testów)
+Weryfikacja operacji CRUD dla lekarzy:
+1. getAllDoctors_shouldReturnList – Zwrócenie listy wszystkich lekarzy.
+2. getDoctorById_shouldReturnDoctor_whenExists – Pobranie lekarza po ID.
+3. getDoctorById_shouldThrow_whenNotFound – Błąd 404 dla nieistniejącego lekarza.
+4. createDoctor_shouldSaveAndReturnDTO – Zapis nowego lekarza i zwrot DTO.
+5. updateDoctor_shouldUpdateAndReturnDTO – Aktualizacja danych lekarza.
+6. updateDoctor_shouldThrow_whenNotFound – Błąd przy aktualizacji nieistniejącego lekarza.
+7. deleteDoctor_shouldDelete_whenExists – Usunięcie lekarza gdy istnieje.
+8. deleteDoctor_shouldThrow_whenNotFound – Błąd przy usuwaniu nieistniejącego lekarza.
+9. getDoctorsBySpecialization_shouldReturnFiltered – Filtrowanie lekarzy po specjalizacji.
+10. getDoctorsBySpecialization_shouldReturnEmpty_whenNoneFound – Pusta lista gdy brak lekarzy o danej specjalizacji.
+
+### PatientServiceTest (12 testów)
+Weryfikacja operacji CRUD dla pacjentów z walidacją danych kontaktowych:
+1. getAllPatients_shouldReturnList – Zwrócenie listy wszystkich pacjentów.
+2. getPatientById_shouldReturnPatient_whenExists – Pobranie pacjenta po ID wraz z telefonem i emailem.
+3. getPatientById_shouldThrow_whenNotFound – Błąd 404 dla nieistniejącego pacjenta.
+4. createPatient_shouldSaveWithPhoneAndEmail – Zapis pacjenta z telefonem i emailem.
+5. createPatient_shouldSave_whenPhoneAndEmailAreNull – Zapis pacjenta gdy dane kontaktowe są opcjonalne.
+6. updatePatient_shouldUpdateAllFields – Aktualizacja wszystkich pól włącznie z danymi kontaktowymi.
+7. updatePatient_shouldThrow_whenNotFound – Błąd przy aktualizacji nieistniejącego pacjenta.
+8. deletePatient_shouldDelete_whenExists – Usunięcie pacjenta gdy istnieje.
+9. deletePatient_shouldThrow_whenNotFound – Błąd przy usuwaniu nieistniejącego pacjenta.
+10. getPatientsBySpecies_shouldReturnFiltered – Filtrowanie pacjentów po gatunku.
+11. getPatientsByOwner_shouldReturnFiltered – Filtrowanie pacjentów po nazwisku właściciela.
+12. getPatientsBySpecies_shouldReturnEmpty_whenNoneFound – Pusta lista gdy brak pacjentów danego gatunku.
 
 Aby uruchomić testy w środowisku IntelliJ, kliknij prawym przyciskiem myszy na folder src/test/java i wybierz opcję Run 'All Tests' lub użyj narzędzia Maven:
 mvn test

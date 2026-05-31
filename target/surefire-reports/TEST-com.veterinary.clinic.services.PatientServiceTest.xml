@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.veterinary.clinic.services.AppointmentServiceTest" time="1.667" tests="14" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.veterinary.clinic.services.PatientServiceTest" time="0.096" tests="12" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -63,18 +63,16 @@
     <property name="maven.repo.local" value="C:\Users\kamil\.m2\repository"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="checkClinicHours_shouldThrow_atClosingTime" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="1.481"/>
-  <testcase name="deleteAppointment_shouldThrow_whenNotFound" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.056"/>
-  <testcase name="updateAppointment_shouldExcludeSelfFromConflictCheck" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.016"/>
-  <testcase name="checkClinicHours_shouldPass_atOpeningTime" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.003"/>
-  <testcase name="checkClinicHours_shouldPass_onWeekdayWithinHours" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.006"/>
-  <testcase name="createAppointment_shouldSave_whenNoConflict" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.013"/>
-  <testcase name="getAppointmentById_shouldThrow_whenNotFound" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.005"/>
-  <testcase name="createAppointment_shouldSave_whenPreviousAppointmentIs31MinutesBefore" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.01"/>
-  <testcase name="checkClinicHours_shouldPass_oneMinuteBeforeClose" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.004"/>
-  <testcase name="checkClinicHours_shouldThrow_onSaturday" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.003"/>
-  <testcase name="checkClinicHours_shouldThrow_onSunday" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.003"/>
-  <testcase name="createAppointment_shouldThrow_whenExactSameTime" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.003"/>
-  <testcase name="createAppointment_shouldThrow_whenConflictWithin30Minutes" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.004"/>
-  <testcase name="checkClinicHours_shouldThrow_beforeOpeningTime" classname="com.veterinary.clinic.services.AppointmentServiceTest" time="0.003"/>
+  <testcase name="deletePatient_shouldDelete_whenExists" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.051"/>
+  <testcase name="getPatientById_shouldThrow_whenNotFound" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.004"/>
+  <testcase name="getPatientsBySpecies_shouldReturnEmpty_whenNoneFound" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.003"/>
+  <testcase name="getPatientsBySpecies_shouldReturnFiltered" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.002"/>
+  <testcase name="createPatient_shouldSaveWithPhoneAndEmail" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.001"/>
+  <testcase name="updatePatient_shouldUpdateAllFields" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.004"/>
+  <testcase name="getPatientsByOwner_shouldReturnFiltered" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.003"/>
+  <testcase name="getAllPatients_shouldReturnList" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.002"/>
+  <testcase name="getPatientById_shouldReturnPatient_whenExists" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.002"/>
+  <testcase name="deletePatient_shouldThrow_whenNotFound" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.003"/>
+  <testcase name="updatePatient_shouldThrow_whenNotFound" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.007"/>
+  <testcase name="createPatient_shouldSave_whenPhoneAndEmailAreNull" classname="com.veterinary.clinic.services.PatientServiceTest" time="0.002"/>
 </testsuite>
