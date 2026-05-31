@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.veterinary.clinic.services.AppointmentServiceTest
+-------------------------------------------------------------------------------
+Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.376 s -- in com.veterinary.clinic.services.AppointmentServiceTest
