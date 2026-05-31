@@ -20,11 +20,13 @@
         .btn-delete { background-color: #e74c3c; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; }
         .btn-delete:hover { background-color: #c0392b; }
         .card-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
-        .btn-refresh { background-color: #3498db; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px; }
+        .btn-refresh { background-color: #3498db; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; }
         .btn-refresh:hover { background-color: #2980b9; }
         .card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px; background-color: #fafafa; }
         .btn-cancel { background-color: #ffc107; color: #333; font-weight: bold; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; margin-right: 15px; }
         .btn-cancel:hover { background-color: #e0a800; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
+        .search-bar input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -49,7 +51,10 @@
             <button class="btn-submit" onclick="addDoctor()">Save Doctor</button>
             <hr>
             <h3>Doctors List</h3>
-            <button class="btn-refresh" onclick="loadDoctors()">Refresh Data</button>
+            <div class="search-bar">
+                <input type="text" id="searchDocLastName" placeholder="Search by Last Name...">
+                <button class="btn-refresh" onclick="loadDoctors()">Search</button>
+            </div>
             <div id="doctorsList"></div>
         </div>
 
@@ -58,10 +63,15 @@
             <div class="form-group"><input type="text" id="patName" placeholder="Animal Name"></div>
             <div class="form-group"><input type="text" id="patSpecies" placeholder="Species"></div>
             <div class="form-group"><input type="text" id="patOwner" placeholder="Owner Name"></div>
+            <div class="form-group"><input type="text" id="patPhone" placeholder="Owner Phone (9 digits)"></div>
+            <div class="form-group"><input type="email" id="patEmail" placeholder="Owner Email"></div>
             <button class="btn-submit" onclick="addPatient()">Save Patient</button>
             <hr>
             <h3>Patients List</h3>
-            <button class="btn-refresh" onclick="loadPatients()">Refresh Data</button>
+            <div class="search-bar">
+                <input type="text" id="searchPatOwner" placeholder="Search by Owner's Last Name...">
+                <button class="btn-refresh" onclick="loadPatients()">Search</button>
+            </div>
             <div id="patientsList"></div>
         </div>
 
@@ -74,7 +84,10 @@
             <button class="btn-submit" onclick="addAppointment()">Save Appointment</button>
             <hr>
             <h3>Appointments List</h3>
-            <button class="btn-refresh" onclick="loadAppointments()">Refresh Data</button>
+            <div class="search-bar">
+                <input type="text" id="searchAppOwner" placeholder="Search by Owner's Last Name...">
+                <button class="btn-refresh" onclick="loadAppointments()">Search</button>
+            </div>
             <div id="appointmentsList"></div>
         </div>
     </div>
@@ -94,6 +107,11 @@
         fetch(apiUrl + '/doctors')
         .then(res => res.json())
         .then(data => {
+            const searchTerm = document.getElementById('searchDocLastName').value.toLowerCase();
+            if (searchTerm) {
+                data = data.filter(d => d.lastName.toLowerCase().includes(searchTerm));
+            }
+
             const div = document.getElementById('doctorsList');
             div.innerHTML = '';
             data.forEach(d => {
@@ -120,11 +138,21 @@
         fetch(apiUrl + '/patients')
         .then(res => res.json())
         .then(data => {
+            const searchTerm = document.getElementById('searchPatOwner').value.toLowerCase();
+            if (searchTerm) {
+                data = data.filter(p => p.ownerName.toLowerCase().includes(searchTerm));
+            }
+
             const div = document.getElementById('patientsList');
             div.innerHTML = '';
             data.forEach(p => {
+                let contactInfo = '';
+                if (p.ownerPhone) contactInfo += `Tel: ${p.ownerPhone} `;
+                if (p.ownerEmail) contactInfo += `E-mail: ${p.ownerEmail}`;
+
                 div.innerHTML += `<div class="card">
-                <strong>ID: ${p.id} | ${p.name} (${p.species})</strong> - Owner: ${p.ownerName}
+                <strong>ID: ${p.id} | ${p.name} (${p.species})</strong> - Owner: ${p.ownerName}<br>
+                ${contactInfo ? contactInfo : ''}
                 <div class="card-actions">
                     <button class="btn-delete" onclick="deleteItem('/patients/${p.id}', loadPatients)">Delete</button>
                 </div>
@@ -137,7 +165,9 @@
         const data = {
             name: document.getElementById('patName').value,
             species: document.getElementById('patSpecies').value,
-            ownerName: document.getElementById('patOwner').value
+            ownerName: document.getElementById('patOwner').value,
+            ownerPhone: document.getElementById('patPhone').value,
+            ownerEmail: document.getElementById('patEmail').value
         };
         postData('/patients', data, loadPatients);
     }
@@ -146,10 +176,14 @@
         fetch(apiUrl + '/appointments')
         .then(res => res.json())
         .then(data => {
+            const searchTerm = document.getElementById('searchAppOwner').value.toLowerCase();
+            if (searchTerm) {
+                data = data.filter(a => a.ownerName.toLowerCase().includes(searchTerm));
+            }
+
             const div = document.getElementById('appointmentsList');
             div.innerHTML = '';
             data.forEach(a => {
-                // Tłumaczenie w locie z polskiego backendu na angielski interfejs
                 let displayStatus = 'COMPLETED';
                 let statusColor = '#7f8c8d';
                 if (a.status === 'ZAPLANOWANA') {
@@ -175,7 +209,6 @@
     }
 
     function cancelAppointment(id) {
-        // Domyślna ścieżka do momentu weryfikacji pliku AppointmentController.java
         fetch(apiUrl + '/appointments/' + id + '/cancel', { method: 'PATCH' })
         .then(res => {
             if(res.ok) {
