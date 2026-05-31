@@ -2,6 +2,7 @@ package com.veterinary.clinic.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import com.veterinary.clinic.models.AppointmentStatus;
 
 import java.time.LocalDateTime;
 
@@ -18,6 +19,7 @@ public class AppointmentDTO {
     private String patientName;
     private String patientSpecies;
     private String ownerName;
+    private AppointmentStatus status;
 
     // ===== Konstruktory =====
 
@@ -25,7 +27,8 @@ public class AppointmentDTO {
 
     public AppointmentDTO(Long id, LocalDateTime dateTime, String description,
                           Long doctorId, String doctorFullName, String doctorSpecialization,
-                          Long patientId, String patientName, String patientSpecies, String ownerName) {
+                          Long patientId, String patientName, String patientSpecies, String ownerName,
+                          AppointmentStatus status) {
         this.id = id;
         this.dateTime = dateTime;
         this.description = description;
@@ -36,6 +39,7 @@ public class AppointmentDTO {
         this.patientName = patientName;
         this.patientSpecies = patientSpecies;
         this.ownerName = ownerName;
+        this.status = status;
     }
 
     // ===== Gettery i Settery =====
@@ -69,4 +73,7 @@ public class AppointmentDTO {
 
     public String getOwnerName() { return ownerName; }
     public void setOwnerName(String ownerName) { this.ownerName = ownerName; }
+
+    public AppointmentStatus getStatus() { return status; }
+    public void setStatus(AppointmentStatus status) { this.status = status; }
 }

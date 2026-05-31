@@ -17,17 +17,20 @@
         .form-group input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
         .btn-submit { background-color: #27ae60; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
         .btn-submit:hover { background-color: #2ecc71; }
-        .btn-delete { background-color: #e74c3c; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; float: right; }
+        .btn-delete { background-color: #e74c3c; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; }
         .btn-delete:hover { background-color: #c0392b; }
+        .card-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
         .btn-refresh { background-color: #3498db; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px; }
         .btn-refresh:hover { background-color: #2980b9; }
         .card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px; background-color: #fafafa; }
+        .btn-cancel { background-color: #ffc107; color: #333; font-weight: bold; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; margin-right: 15px; }
+        .btn-cancel:hover { background-color: #e0a800; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <h2>Vet Clinic Menu</h2>
+    <h2>Vet Clinic Dashboard</h2>
 </div>
 
 <div class="container">
@@ -38,7 +41,6 @@
     </div>
 
     <div class="content">
-
         <div id="doctorsSection">
             <h3>Add Doctor</h3>
             <div class="form-group"><input type="text" id="docFirstName" placeholder="First Name"></div>
@@ -75,7 +77,6 @@
             <button class="btn-refresh" onclick="loadAppointments()">Refresh Data</button>
             <div id="appointmentsList"></div>
         </div>
-
     </div>
 </div>
 
@@ -83,112 +84,143 @@
     const apiUrl = 'http://localhost:8080/api';
 
     function showSection(sectionId) {
-    document.getElementById('doctorsSection').classList.add('hidden');
-    document.getElementById('patientsSection').classList.add('hidden');
-    document.getElementById('appointmentsSection').classList.add('hidden');
-    document.getElementById(sectionId).classList.remove('hidden');
+        document.getElementById('doctorsSection').classList.add('hidden');
+        document.getElementById('patientsSection').classList.add('hidden');
+        document.getElementById('appointmentsSection').classList.add('hidden');
+        document.getElementById(sectionId).classList.remove('hidden');
     }
 
     function loadDoctors() {
-    fetch(apiUrl + '/doctors')
-    .then(res => res.json())
-    .then(data => {
-    const div = document.getElementById('doctorsList');
-    div.innerHTML = '';
-    data.forEach(d => {
-    div.innerHTML += `<div class="card">
-    <strong>ID: ${d.id} | ${d.firstName} ${d.lastName}</strong> - ${d.specialization}
-    <button class="btn-delete" onclick="deleteItem('/doctors/${d.id}', loadDoctors)">Delete</button>
-    </div>`;
-    });
-    });
+        fetch(apiUrl + '/doctors')
+        .then(res => res.json())
+        .then(data => {
+            const div = document.getElementById('doctorsList');
+            div.innerHTML = '';
+            data.forEach(d => {
+                div.innerHTML += `<div class="card">
+                <strong>ID: ${d.id} | ${d.firstName} ${d.lastName}</strong> - ${d.specialization}
+                <div class="card-actions">
+                    <button class="btn-delete" onclick="deleteItem('/doctors/${d.id}', loadDoctors)">Delete</button>
+                </div>
+                </div>`;
+            });
+        });
     }
 
     function addDoctor() {
-    const data = {
-    firstName: document.getElementById('docFirstName').value,
-    lastName: document.getElementById('docLastName').value,
-    specialization: document.getElementById('docSpecialization').value
-    };
-    postData('/doctors', data, loadDoctors);
+        const data = {
+            firstName: document.getElementById('docFirstName').value,
+            lastName: document.getElementById('docLastName').value,
+            specialization: document.getElementById('docSpecialization').value
+        };
+        postData('/doctors', data, loadDoctors);
     }
 
     function loadPatients() {
-    fetch(apiUrl + '/patients')
-    .then(res => res.json())
-    .then(data => {
-    const div = document.getElementById('patientsList');
-    div.innerHTML = '';
-    data.forEach(p => {
-    div.innerHTML += `<div class="card">
-    <strong>ID: ${p.id} | ${p.name} (${p.species})</strong> - Owner: ${p.ownerName}
-    <button class="btn-delete" onclick="deleteItem('/patients/${p.id}', loadPatients)">Delete</button>
-    </div>`;
-    });
-    });
+        fetch(apiUrl + '/patients')
+        .then(res => res.json())
+        .then(data => {
+            const div = document.getElementById('patientsList');
+            div.innerHTML = '';
+            data.forEach(p => {
+                div.innerHTML += `<div class="card">
+                <strong>ID: ${p.id} | ${p.name} (${p.species})</strong> - Owner: ${p.ownerName}
+                <div class="card-actions">
+                    <button class="btn-delete" onclick="deleteItem('/patients/${p.id}', loadPatients)">Delete</button>
+                </div>
+                </div>`;
+            });
+        });
     }
 
     function addPatient() {
-    const data = {
-    name: document.getElementById('patName').value,
-    species: document.getElementById('patSpecies').value,
-    ownerName: document.getElementById('patOwner').value
-    };
-    postData('/patients', data, loadPatients);
+        const data = {
+            name: document.getElementById('patName').value,
+            species: document.getElementById('patSpecies').value,
+            ownerName: document.getElementById('patOwner').value
+        };
+        postData('/patients', data, loadPatients);
     }
 
     function loadAppointments() {
-    fetch(apiUrl + '/appointments')
-    .then(res => res.json())
-    .then(data => {
-    const div = document.getElementById('appointmentsList');
-    div.innerHTML = '';
-    data.forEach(a => {
-    div.innerHTML += `<div class="card">
-    <strong>ID: ${a.id} | ${a.dateTime.replace('T', ' ')}</strong><br>
-    Doctor: ${a.doctorFullName} | Patient: ${a.patientName} (${a.ownerName})<br>
-    Desc: ${a.description}
-    <button class="btn-delete" onclick="deleteItem('/appointments/${a.id}', loadAppointments)">Delete</button>
-    </div>`;
-    });
-    });
+        fetch(apiUrl + '/appointments')
+        .then(res => res.json())
+        .then(data => {
+            const div = document.getElementById('appointmentsList');
+            div.innerHTML = '';
+            data.forEach(a => {
+                // Tłumaczenie w locie z polskiego backendu na angielski interfejs
+                let displayStatus = 'COMPLETED';
+                let statusColor = '#7f8c8d';
+                if (a.status === 'ZAPLANOWANA') {
+                    displayStatus = 'PLANNED';
+                    statusColor = '#27ae60';
+                } else if (a.status === 'ODWOLANA') {
+                    displayStatus = 'CANCELED';
+                    statusColor = '#e74c3c';
+                }
+
+                div.innerHTML += `<div class="card">
+                <strong>ID: ${a.id} | ${a.dateTime.replace('T', ' ')}</strong>
+                <span style="background:${statusColor}; color:white; padding:2px 8px; border-radius:10px; font-size:12px; margin-left:8px;">${displayStatus}</span><br>
+                Doctor: ${a.doctorFullName} | Patient: ${a.patientName} (${a.ownerName})<br>
+                Desc: ${a.description}
+                <div class="card-actions">
+                    ${a.status === 'ZAPLANOWANA' ? `<button class="btn-cancel" onclick="cancelAppointment(${a.id})">Cancel</button>` : ''}
+                    <button class="btn-delete" onclick="deleteItem('/appointments/${a.id}', loadAppointments)">Delete</button>
+                </div>
+                </div>`;
+            });
+        });
+    }
+
+    function cancelAppointment(id) {
+        // Domyślna ścieżka do momentu weryfikacji pliku AppointmentController.java
+        fetch(apiUrl + '/appointments/' + id + '/cancel', { method: 'PATCH' })
+        .then(res => {
+            if(res.ok) {
+                loadAppointments();
+            } else {
+                alert("Error: You can't cancel this appointment");
+            }
+        });
     }
 
     function addAppointment() {
-    const data = {
-    dateTime: document.getElementById('appDateTime').value,
-    description: document.getElementById('appDesc').value,
-    doctorId: document.getElementById('appDocId').value,
-    patientId: document.getElementById('appPatId').value
-    };
-    postData('/appointments', data, loadAppointments);
+        const data = {
+            dateTime: document.getElementById('appDateTime').value,
+            description: document.getElementById('appDesc').value,
+            doctorId: document.getElementById('appDocId').value,
+            patientId: document.getElementById('appPatId').value
+        };
+        postData('/appointments', data, loadAppointments);
     }
 
     function postData(endpoint, data, reloadCallback) {
-    fetch(apiUrl + endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-    })
-    .then(res => {
-    if(res.ok) {
-    alert('Success');
-    reloadCallback();
-    } else {
-    alert('Error occurred - Check your inputs or API rules');
-    }
-    });
+        fetch(apiUrl + endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => {
+            if(res.ok) {
+                alert('Success');
+                reloadCallback();
+            } else {
+                alert('Error occurred - Check your inputs or API rules');
+            }
+        });
     }
 
     function deleteItem(endpoint, reloadCallback) {
-    fetch(apiUrl + endpoint, { method: 'DELETE' })
-    .then(res => {
-    if(res.ok) {
-    reloadCallback();
-    } else {
-    alert('Error occurred');
-    }
-    });
+        fetch(apiUrl + endpoint, { method: 'DELETE' })
+        .then(res => {
+            if(res.ok) {
+                reloadCallback();
+            } else {
+                alert('Error occurred');
+            }
+        });
     }
 
     loadDoctors();

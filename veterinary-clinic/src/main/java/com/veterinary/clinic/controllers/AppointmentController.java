@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 import java.util.List;
 
@@ -71,6 +72,13 @@ public class AppointmentController {
     public ResponseEntity<Void> deleteAppointment(@PathVariable Long id) {
         appointmentService.deleteAppointment(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/cancel")
+    @Operation(summary = "Odwołaj wizytę (zmiana statusu na ODWOLANA)",
+            description = "Nie usuwa wizyty z bazy — zachowuje historię")
+    public ResponseEntity<AppointmentDTO> cancelAppointment(@PathVariable Long id) {
+        return ResponseEntity.ok(appointmentService.cancelAppointment(id));
     }
 }
 

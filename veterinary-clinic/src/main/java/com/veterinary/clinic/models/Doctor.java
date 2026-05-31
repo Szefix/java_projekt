@@ -4,10 +4,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
+import com.veterinary.clinic.models.BaseEntity;
 
 @Entity
 @Table(name = "doctors")
-public class Doctor {
+public class Doctor extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

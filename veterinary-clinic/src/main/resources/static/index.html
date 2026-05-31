@@ -17,17 +17,20 @@
         .form-group input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
         .btn-submit { background-color: #27ae60; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
         .btn-submit:hover { background-color: #2ecc71; }
-        .btn-delete { background-color: #e74c3c; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; float: right; }
+        .btn-delete { background-color: #e74c3c; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; }
         .btn-delete:hover { background-color: #c0392b; }
+        .card-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
         .btn-refresh { background-color: #3498db; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px; }
         .btn-refresh:hover { background-color: #2980b9; }
         .card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px; background-color: #fafafa; }
+        .btn-cancel { background-color: #ffc107; color: #333; font-weight: bold; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; margin-right: 15px; }
+        .btn-cancel:hover { background-color: #e0a800; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <h2>Vet Clinic Menu</h2>
+    <h2>Vet Clinic Dashboard</h2>
 </div>
 
 <div class="container">
@@ -38,7 +41,6 @@
     </div>
 
     <div class="content">
-
         <div id="doctorsSection">
             <h3>Add Doctor</h3>
             <div class="form-group"><input type="text" id="docFirstName" placeholder="First Name"></div>
@@ -75,7 +77,6 @@
             <button class="btn-refresh" onclick="loadAppointments()">Refresh Data</button>
             <div id="appointmentsList"></div>
         </div>
-
     </div>
 </div>
 
@@ -98,7 +99,9 @@
             data.forEach(d => {
                 div.innerHTML += `<div class="card">
                 <strong>ID: ${d.id} | ${d.firstName} ${d.lastName}</strong> - ${d.specialization}
-                <button class="btn-delete" onclick="deleteItem('/doctors/${d.id}', loadDoctors)">Delete</button>
+                <div class="card-actions">
+                    <button class="btn-delete" onclick="deleteItem('/doctors/${d.id}', loadDoctors)">Delete</button>
+                </div>
                 </div>`;
             });
         });
@@ -120,10 +123,12 @@
             const div = document.getElementById('patientsList');
             div.innerHTML = '';
             data.forEach(p => {
-            div.innerHTML += `<div class="card">
-            <strong>ID: ${p.id} | ${p.name} (${p.species})</strong> - Owner: ${p.ownerName}
-            <button class="btn-delete" onclick="deleteItem('/patients/${p.id}', loadPatients)">Delete</button>
-            </div>`;
+                div.innerHTML += `<div class="card">
+                <strong>ID: ${p.id} | ${p.name} (${p.species})</strong> - Owner: ${p.ownerName}
+                <div class="card-actions">
+                    <button class="btn-delete" onclick="deleteItem('/patients/${p.id}', loadPatients)">Delete</button>
+                </div>
+                </div>`;
             });
         });
     }
@@ -144,13 +149,40 @@
             const div = document.getElementById('appointmentsList');
             div.innerHTML = '';
             data.forEach(a => {
+                // Tłumaczenie w locie z polskiego backendu na angielski interfejs
+                let displayStatus = 'COMPLETED';
+                let statusColor = '#7f8c8d';
+                if (a.status === 'ZAPLANOWANA') {
+                    displayStatus = 'PLANNED';
+                    statusColor = '#27ae60';
+                } else if (a.status === 'ODWOLANA') {
+                    displayStatus = 'CANCELED';
+                    statusColor = '#e74c3c';
+                }
+
                 div.innerHTML += `<div class="card">
-                <strong>ID: ${a.id} | ${a.dateTime.replace('T', ' ')}</strong><br>
+                <strong>ID: ${a.id} | ${a.dateTime.replace('T', ' ')}</strong>
+                <span style="background:${statusColor}; color:white; padding:2px 8px; border-radius:10px; font-size:12px; margin-left:8px;">${displayStatus}</span><br>
                 Doctor: ${a.doctorFullName} | Patient: ${a.patientName} (${a.ownerName})<br>
                 Desc: ${a.description}
-                <button class="btn-delete" onclick="deleteItem('/appointments/${a.id}', loadAppointments)">Delete</button>
+                <div class="card-actions">
+                    ${a.status === 'ZAPLANOWANA' ? `<button class="btn-cancel" onclick="cancelAppointment(${a.id})">Cancel</button>` : ''}
+                    <button class="btn-delete" onclick="deleteItem('/appointments/${a.id}', loadAppointments)">Delete</button>
+                </div>
                 </div>`;
             });
+        });
+    }
+
+    function cancelAppointment(id) {
+        // Domyślna ścieżka do momentu weryfikacji pliku AppointmentController.java
+        fetch(apiUrl + '/appointments/' + id + '/cancel', { method: 'PATCH' })
+        .then(res => {
+            if(res.ok) {
+                loadAppointments();
+            } else {
+                alert("Error: You can't cancel this appointment");
+            }
         });
     }
 

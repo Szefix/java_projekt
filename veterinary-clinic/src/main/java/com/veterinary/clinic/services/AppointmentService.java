@@ -7,6 +7,7 @@ import com.veterinary.clinic.exceptions.ResourceNotFoundException;
 import com.veterinary.clinic.models.Appointment;
 import com.veterinary.clinic.models.Doctor;
 import com.veterinary.clinic.models.Patient;
+import com.veterinary.clinic.models.AppointmentStatus;
 import com.veterinary.clinic.repositories.AppointmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,6 +117,19 @@ public class AppointmentService {
         return mapToDTO(updated);
     }
 
+    // ===== Odwołanie wizyty =====
+    public AppointmentDTO cancelAppointment(Long id) {
+        Appointment appointment = findAppointmentOrThrow(id);
+        if (appointment.getStatus() != AppointmentStatus.ZAPLANOWANA) {
+            throw new AppointmentConflictException(
+                    "Można odwołać tylko wizyty ze statusem ZAPLANOWANA. " +
+                            "Aktualny status: " + appointment.getStatus()
+            );
+        }
+        appointment.setStatus(AppointmentStatus.ODWOLANA);
+        return mapToDTO(appointmentRepository.save(appointment));
+    }
+
     // ===== Usunięcie wizyty =====
     public void deleteAppointment(Long id) {
         findAppointmentOrThrow(id);
@@ -169,7 +183,8 @@ public class AppointmentService {
                 a.getPatient().getId(),
                 a.getPatient().getName(),
                 a.getPatient().getSpecies(),
-                a.getPatient().getOwnerName()
+                a.getPatient().getOwnerName(),
+                a.getStatus()
         );
     }
 

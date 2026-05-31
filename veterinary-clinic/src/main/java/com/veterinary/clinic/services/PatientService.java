@@ -89,7 +89,9 @@ public class PatientService {
                 patient.getId(),
                 patient.getName(),
                 patient.getSpecies(),
-                patient.getOwnerName()
+                patient.getOwnerName(),
+                patient.getOwnerPhone(),
+                patient.getOwnerEmail()
         );
     }
 
